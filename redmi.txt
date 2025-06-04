@@ -2,15 +2,18 @@
 
 src/
 │
+├── arbitrage-services/                  # Общая логика (арбитраж, стратегии, маршруты вывода)
+│   └── arbitrageApi.ts
+│
 ├── core/                  # Общая логика (арбитраж, стратегии, маршруты вывода)
-│   ├── arbitrageScanner.ts
-│   └── withdrawalManager.ts
+│   └── arbitrageScanner.ts
 │
 ├── exchanges/             # Биржи, каждая со своим API-клиентом
 │   ├── base/              # Общий интерфейс и базовая реализация
 │   │   └── ExchangeApi.ts
 │   └── mexc/
-│       └── MexcApi.ts
+│       ├── MexcApi.ts
+│       └── websocketClient.ts
 │
 ├── networks/              # Сети, например, TON
 │   └── ton/
@@ -19,7 +22,8 @@ src/
 ├── events/                # Обработка WebSocket событий, например, изменения баланса
 │   └── mexcBalanceListener.ts
 │
-├── types/                 # Типы и интерфейсы
-│   └── exchange.types.ts
+├── utils/                 # Типы и интерфейсы
+│   ├── jwt.ts
+│   └── realine.ts
 │
 └── index.ts               # Точка входа

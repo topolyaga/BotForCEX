@@ -16,7 +16,8 @@ const API_KEY = process.env.MEXC_API_KEY!;
 const SECRET_KEY = process.env.MEXC_SECRET_KEY!;
 
 const BASE_REST_URL = 'https://api.mexc.com';
-const BASE_WS_URL = 'wss://wbs-api.mexc.com/ws';
+const BASE_PRIVATE_WS_URL = 'wss://wbs-api.mexc.com/ws';
+const BASE_PUBLIC_WS_URL = 'wss://wbs.mexc.com/ws';
 
 // Получаем подпись
 async function getSignature(params: Record<string, string>): Promise<string> {
@@ -100,7 +101,7 @@ async function keepAliveListenKey(listenKey: string): Promise<void> {
 async function startWebSocket() {
 
   const listenKey = await getListenKey();
-  const wsUrl = `${BASE_WS_URL}?listenKey=${listenKey}`;
+  const wsUrl = `${BASE_PRIVATE_WS_URL}?listenKey=${listenKey}`;
 
   keepAliveListenKey(listenKey);
   
@@ -129,7 +130,29 @@ async function startWebSocket() {
 
     console.log('📨 Отправляем подписку на обновления аккаунта:', payload);
     ws.send(JSON.stringify(payload));
+    
+    const payload_2 = {
+      method: 'SUBSCRIPTION',
+      params: ['spot@public.aggre.depth.v3.api.pb@100ms@ARIXUSDT'],
+      id: Date.now(),
+    };
+
+    console.log('📨 Отправляем подписку на ордера:', payload_2);
+    ws.send(JSON.stringify(payload_2));
   });
+  
+  // ws.on('open', () => {
+  //   console.log('✅ WebSocket соединение открыто');
+
+  //   const payload = {
+  //     method: 'SUBSCRIPTION',
+  //     params: ['spot@public.aggre.deals.v3.api.pb@100ms@WBTCUSDT'],
+  //     id: Date.now(),
+  //   };
+
+  //   console.log('📨 Отправляем подписку на обновления стакана:', payload);
+  //   ws.send(JSON.stringify(payload));
+  // });
 
   ws.on('message', (data: Buffer) => {
 
@@ -149,11 +172,11 @@ async function startWebSocket() {
     }
 
     if (!isJson){
-        // ✅ Это protobuf, декодируем
+        // ✅ Это protobuf, декодируем тут меняем на методы из PushDataV3ApiWrapper под каждое событие например для balanceUpdate: privateAccount
     
         const decoded = protobuf.PushDataV3ApiWrapper.decode(data);
         
-        const balanceUpdate = decoded.privateAccount;
+        const balanceUpdate = decoded.publicAggreDepths;
     
         if (balanceUpdate) {
             console.log('📬 Обновление баланса:', JSON.stringify(balanceUpdate, null, 2));
@@ -161,6 +184,20 @@ async function startWebSocket() {
             console.log('📦 Пришло protobuf-сообщение, но не про баланс. Канал:', decoded.channel);
         }
     }
+    
+    // if (!isJson){
+    //     // ✅ Это protobuf, декодируем
+    
+    //     const decoded = protobuf.PushDataV3ApiWrapper.decode(data);
+        
+    //     const balanceUpdate = decoded.privateAccount;
+    
+    //     if (balanceUpdate) {
+    //         console.log('📬 Ордер:', JSON.stringify(balanceUpdate, null, 2));
+    //     } else {
+    //         console.log('📦 Пришло protobuf-сообщение, но не про баланс. Канал:', decoded.channel);
+    //     }
+    // }
 
   });
 

@@ -28,10 +28,10 @@ export async function startScanner() {
   setInterval(async () => {
     try {
         const spreads = await api.fetchSpreads();
-        console.log('📊 Spreads:');
+        console.log('📊 Spreads:', spreads.data);
       } catch (err) {
         console.error('Ошибка при получении spreads:', err);
       }
   }, 10 * 1000);
-  
+
 }
